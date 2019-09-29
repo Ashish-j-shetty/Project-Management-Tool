@@ -2,14 +2,16 @@ package com.fullstack.pmtool.services;
 
 import com.fullstack.pmtool.domain.Backlog;
 import com.fullstack.pmtool.domain.Project;
+import com.fullstack.pmtool.domain.User;
 import com.fullstack.pmtool.exceptions.ProjectIdException;
 import com.fullstack.pmtool.repositories.BacklogRepository;
 import com.fullstack.pmtool.repositories.ProjectReporisitory;
+import com.fullstack.pmtool.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ProjectService {
+public class  ProjectService {
 
      @Autowired
     private ProjectReporisitory projectReporisitory;
@@ -17,8 +19,15 @@ public class ProjectService {
      @Autowired
      private BacklogRepository backlogRepository;
 
-     public Project saveOrUpdateProject(Project project){
+     @Autowired
+     private UserRepository userRepository;
+
+     public Project saveOrUpdateProject(Project project, String username){
          try{
+              User user = userRepository.findByUsername(username);
+              project.setUser(user);
+              project.setProjectLeader(user.getUsername());
+
              project.setProjectIdentifier(project.getProjectIdentifier().toUpperCase());
 
              if(project.getId()==null){  // during project creation
@@ -48,8 +57,8 @@ public class ProjectService {
         return project;
      }
 
-     public Iterable<Project> findAllProjects(){
-         return  projectReporisitory.findAll();
+     public Iterable<Project> findAllProjects(String username){
+         return  projectReporisitory.findAllByProjectLeader(username);
      }
 
      public void deleteProjectById(String projectId){
