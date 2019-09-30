@@ -4,6 +4,7 @@ import com.fullstack.pmtool.domain.Backlog;
 import com.fullstack.pmtool.domain.Project;
 import com.fullstack.pmtool.domain.User;
 import com.fullstack.pmtool.exceptions.ProjectIdException;
+import com.fullstack.pmtool.exceptions.ProjectNotFoundException;
 import com.fullstack.pmtool.repositories.BacklogRepository;
 import com.fullstack.pmtool.repositories.ProjectReporisitory;
 import com.fullstack.pmtool.repositories.UserRepository;
@@ -23,6 +24,20 @@ public class  ProjectService {
      private UserRepository userRepository;
 
      public Project saveOrUpdateProject(Project project, String username){
+
+         //project.getid is null when we creat a new project
+         //if we are updating then the project id is not null
+
+         if(project.getId()!=null){
+             Project existingProject = projectReporisitory.findByProjectIdentifier(project.getProjectIdentifier());
+             if(existingProject!=null && !existingProject.getProjectLeader().equals(username)){
+                  throw  new ProjectNotFoundException("Project not found in your account");
+             }else if (existingProject == null){
+                 throw  new ProjectNotFoundException("Project with id :'"+project.getProjectIdentifier()+"'does'nt exist");
+             }
+         }
+
+
          try{
               User user = userRepository.findByUsername(username);
               project.setUser(user);
@@ -48,11 +63,15 @@ public class  ProjectService {
 
      }
 
-     public Project findProjectByIdentifier(String projectId){
+     public Project findProjectByIdentifier(String projectId , String username){
         Project project=  projectReporisitory.findByProjectIdentifier(projectId.toUpperCase());
 
         if(project==null){
             throw  new ProjectIdException("Project Id ,"+projectId+"' does not Exists");
+        }
+
+        if(!project.getProjectLeader().equals(username)){
+            throw new ProjectNotFoundException("Project not found in your accoount");
         }
         return project;
      }
@@ -61,11 +80,8 @@ public class  ProjectService {
          return  projectReporisitory.findAllByProjectLeader(username);
      }
 
-     public void deleteProjectById(String projectId){
-         Project project=projectReporisitory.findByProjectIdentifier(projectId.toUpperCase());
-         if(project==null){
-             throw new ProjectIdException("Project Id'"+projectId+"'does not exits");
-         }
-         projectReporisitory.delete(project);
+     public void deleteProjectById(String projectId,String username){
+
+         projectReporisitory.delete(findProjectByIdentifier(projectId,username));
      }
 }
