@@ -56,6 +56,7 @@ class UpdataProjectTask extends Component {
         id
       };
     }
+    return state;
   }
 
   componentDidMount() {
