@@ -18,9 +18,9 @@ class AddProject extends Component {
     };
   }
 
-  componentDidUpdate(nextProps, prevState) {
+  static getDerivedStateFromProps(nextProps, prevState) {
     if (nextProps.errors !== prevState.errors) {
-      this.setState({ errors: nextProps.errors });
+      return { errors: nextProps.errors };
     }
   }
 
